@@ -1,9 +1,13 @@
+#!/usr/bin/env python
+import sys
 import re
 import json
 import logging
 import gzip
 import os
 from time import time
+import shutil
+import concurrent.futures
 
 
 # Estimate time of program execution
@@ -14,8 +18,8 @@ def time_dec(original_func):
         end = time()
         dif = end - start
         print(f'function {original_func.__name__} executed in {dif} second')  # visualize process
-        info = f'function {original_func.__name__} executed in {dif} second'
         return res
+
     return wrapper
 
 
@@ -30,12 +34,11 @@ logger.addHandler(file_handler)
 
 # supplemental class to store functions and data
 class UrlStat:
-    _all_time_counter = 0  # Whole time of urls in nginx-access-ui.log-20170630
-    _all_url_counter = 0  # Number of url's in nginx-access-ui.log-20170630
+    _total_time = 0  # Whole time of urls in nginx-access-ui.log
+    _total_url = 0  # Number of url's in nginx-access-ui.log
 
     def __init__(self, url, req_time):
         self.url = url
-        self.all_time = 0
         self.time = req_time  # total request_time for a given URL, absolute value
         self.samples = []  # samples fot a given URL [0.33, 0.11....0,9]
         self.freq = 0
@@ -44,7 +47,7 @@ class UrlStat:
     # Count total execution time of all given URLs
     def add_time(self, req_time):
         self.samples.append(req_time)
-        UrlStat._all_time_counter += req_time
+        UrlStat._total_time += req_time
 
     # median of request_time for a given URL
     def time_med(self):
@@ -60,18 +63,18 @@ class UrlStat:
 
     # Relative frequency of URL
     def freq_rel(self):
-        return (self.freq / self._all_url_counter) * 100
+        return (self.freq / self._total_url) * 100
 
-    # Count times URL occurs in nginx-access-ui.log-20170630
-    def count_freq(self):
+    # Count times URL occurs in nginx-access-ui.log
+    def freq_count(self):
         self.freq += 1
-        UrlStat._all_url_counter += 1
+        UrlStat._total_url += 1
 
     # total request_time for a given URL,
     # relative to the total request_time of all
     # requests
     def time_perc(self):
-        return float(self.time / self._all_time_counter) * 100
+        return float(self.time / self._total_time) * 100
 
     # average request_time for a given URL
     def time_avg(self):
@@ -96,28 +99,28 @@ def log_analyzer(file_nginx):
         # UrlStat : 0.390(exec_time), 1(frequency)
         for idx, line in enumerate(info_nginx):
             url_srch = re.search(url_time_pattern, line)
-            time_srch = re.search(url_time_pattern, line)
             if url_srch is None:
-                logger.warning(f'Tired to execute Line idx = {idx}; '
-                               f'Line :{line}; url_short not found')
+                logger.warning(f'Failed to parse line {idx=}; '
+                               f'Error in {line=}')
                 continue
             url_short = url_srch.group('url_short')  # /api/v2/banner/25019354
-            exc_time = float(time_srch.group('exec_time'))  # 0.390
+            exc_time = float(url_srch.group('exec_time'))  # 0.390
 
             if url_short not in url_vals:
                 us = UrlStat(url_short, exc_time)
                 us.add_time(exc_time)
-                us.count_freq()
+                us.freq_count()
                 url_vals[url_short] = us
             else:
                 url_stat = url_vals[url_short]
                 url_stat.add_time(exc_time)
-                url_stat.count_freq()
+                url_stat.freq_count()
         return url_vals
 
 
 @time_dec
-def build_report(url_vals, log_path):
+# sys,argv[2] = r'/home/driver220v/log_reports/
+def build_report(url_vals, num_rep, log_path_orig=sys.argv[1]):
     # generate json data
     data = []
     for url, stats in url_vals.items():
@@ -134,16 +137,33 @@ def build_report(url_vals, log_path):
 
     table_json_text = json.dumps(data)
 
-    with open("report.html", 'r') as rtf:
+    shutil.copyfile('report.html', f'report{num_rep}.html')
+
+    with open(report_file := f"report{num_rep}.html", 'r') as rtf:
         report_text = rtf.read()
         report_text = report_text.replace("$table_json", table_json_text)
 
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)  # create intermediate directories
-    with open(report_path, "w") as rf:
+    os.makedirs(log_path_orig, exist_ok=True)
+    with open(report_file, "w") as rf:
         rf.write(report_text)
+        shutil.move(report_file, os.path.join(log_path_orig, report_file))
 
 
-path = r'nginx-access-ui.log-20170630.gz'
-report_path = r'/home/driver220/log_reports/report_ver2.html'
-url_vals = log_analyzer(path)
-build_report(url_vals, report_path)
+def concur_parse_logs(path_lst):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        result = [executor.submit(log_analyzer, log_file) for log_file in path_lst]
+        for idx, f in enumerate(concurrent.futures.as_completed(result), 1):
+            # write_to_file(f.result())
+            #  when parsing log file is finished. Build report using parsed data.
+            build_report(f.result(), idx)
+
+
+if __name__ == "__main__":
+    path_logs = []
+    log_number = 2
+    report_name = 'report.html'
+    for i in range(log_number):
+        path_logs.append(f'nginx-access-ui.log{i}.gz')
+        shutil.copyfile('nginx-access-ui.log.gz', f'nginx-access-ui.log{i}.gz')
+    # able to parse logs concurrently using Threads
+    concur_parse_logs(path_logs)
