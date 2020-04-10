@@ -100,8 +100,8 @@ def log_analyzer(file_nginx):
         for idx, line in enumerate(info_nginx):
             url_srch = re.search(url_time_pattern, line)
             if url_srch is None:
-                logger.warning(f'Failed to parse line {idx=}; '
-                               f'Error in {line=}')
+                logger.warning(f'Failed to parse line = {idx}; '
+                               f'Error in = {line}')
                 continue
             url_short = url_srch.group('url_short')  # /api/v2/banner/25019354
             exc_time = float(url_srch.group('exec_time'))  # 0.390
@@ -138,8 +138,8 @@ def build_report(url_vals, num_rep, log_path_orig=sys.argv[1]):
     table_json_text = json.dumps(data)
 
     shutil.copyfile('report.html', f'report{num_rep}.html')
-
-    with open(report_file := f"report{num_rep}.html", 'r') as rtf:
+    report_file = f"report{num_rep}.html"
+    with open(report_file, 'r') as rtf:
         report_text = rtf.read()
         report_text = report_text.replace("$table_json", table_json_text)
 
