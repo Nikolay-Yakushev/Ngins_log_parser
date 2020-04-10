@@ -10,17 +10,17 @@
         root@44644cde978f:/# cd /home/log_parser/ 
 3) Run cript: 
 
-    python3 log_analyzer.py <directory where parsed logs will be stored>
+        python3 log_analyzer.py <directory where parsed logs will be stored>
 
 
 4) for example:
 
-    root@44644cde978f:/home/log_parser# python3 log_analyzer.py /home/log_parser/
+        root@44644cde978f:/home/log_parser# python3 log_analyzer.py /home/log_parser/
 5) output:
 
 
-    root@44644cde978f:/home/log_parser# ls -a 
+        root@44644cde978f:/home/log_parser# ls -a 
     
-        report1.html report2.html
+            report1.html report2.html
     
 
