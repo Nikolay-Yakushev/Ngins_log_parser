@@ -8,15 +8,15 @@
 
 
         root@44644cde978f:/# cd /home/log_parser/ 
-2)Run cript: 
+3)Run cript: 
 
     python3 log_analyzer.py <directory where parsed logs will be stored>
 
 
-3)for example:
+4)for example:
 
     root@44644cde978f:/home/log_parser# python3 log_analyzer.py /home/log_parser/
-4) output:
+5) output:
 
 
     root@44644cde978f:/home/log_parser# ls -a 
