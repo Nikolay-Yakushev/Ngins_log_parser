@@ -3,7 +3,7 @@
 
 1) Run docker file in interactive mode
     
-        sudo docker run -it driver220v/maxfolder
+        sudo docker run -it driver220v/log_parser
 2) move to script directory
 
 
