@@ -26,9 +26,9 @@ def time_dec(original_func):
 # Creating logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
-foramtter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
 file_handler = logging.FileHandler('nginx_data.log')
-file_handler.setFormatter(foramtter)
+file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
