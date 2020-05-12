@@ -172,7 +172,7 @@ def build_report(url_vals, num_rep, log_path_orig):
 
 def concur_parse_logs(path_lst):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        result = [executor.submit(log_analyzer, log_file) for log_file in path_lst]
+        result = [executor.submit(log_analyze, log_file) for log_file in path_lst]
         for idx, f in enumerate(concurrent.futures.as_completed(result), 1):
             #  when parsing log file is finished. Build report using parsed data.
             build_report(f.result(), idx, args.folder)
