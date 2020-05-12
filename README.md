@@ -2,21 +2,28 @@
 
 
 1) Run docker file in interactive mode
+
+
+
     
         sudo docker run -it driver220v/log_parser
-2) move to script directory
+ 
+2) Run script: 
 
 
-        root@44644cde978f:/# cd /home/log_parser/ 
-3) Run cript: 
 
-        python3 log_analyzer.py <directory where parsed logs will be stored>
+        python3 log_analyzer.py --folder=<store reort directory> --log=<gzipped log file>
 
 
-4) for example:
 
-        root@44644cde978f:/home/log_parser# python3 log_analyzer.py /home/log_parser/
-5) output:
+3) for example:
+
+
+
+
+        root@44644cde978f:/home/log_parser# python3 --folder=/home/log_parser/logs_saves --log=nginx-access-ui.log.gz
+
+4) output:
 
 
         root@44644cde978f:/home/log_parser# ls -a 
