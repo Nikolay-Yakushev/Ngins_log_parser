@@ -81,7 +81,7 @@ class UrlStat:
 
 
 @time_dec
-def log_analyzer(file_nginx):
+def log_analyze(file_nginx):
     """check if file_nginx parameter is file"""
     if os.path.isfile(file_nginx):
         if file_nginx.endswith('.mp3'):
