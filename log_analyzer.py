@@ -9,6 +9,9 @@ import shutil
 from time import time
 
 
+
+
+
 # Estimate time of program execution
 def time_dec(original_func):
     def wrapper(*args):
@@ -30,6 +33,8 @@ file_handler = logging.FileHandler('nginx_data.log')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
+class WrongFileFormat(BaseException):
+    logger.debug('Failed due to inappropriate log format or content')
 
 # supplemental class to store functions and data
 class UrlStat:
@@ -84,8 +89,6 @@ class UrlStat:
 def log_analyze(file_nginx):
     """check if file_nginx parameter is file"""
     if os.path.isfile(file_nginx):
-        if file_nginx.endswith('.mp3'):
-            print('ok')
         with gzip.open(file_nginx, 'rt') as info_nginx:
             url_time_pattern = re.compile(".+?(GET|POST|PUT|DELETE|HEAD|CONNECT|OPTIONS|TRACE)"
                                           "(?P<url_short>(.+?))(\?|HTTP).+ (?P<exec_time>[\d.]+)")
@@ -104,8 +107,8 @@ def log_analyze(file_nginx):
             for idx, line in enumerate(info_nginx):
                 url_srch = re.search(url_time_pattern, line)
                 if url_srch is None:
-                    logger.warning(f'Failed to parse line {idx=}; '
-                                   f'Error in {line=}')
+                    logger.warning(f'Failed to parse line idx={idx}; '
+                                   f'Error in line={line}')
                     continue
                 url_short = url_srch.group('url_short')  # /api/v2/banner/25019354
                 exc_time = float(url_srch.group('exec_time'))  # 0.390
@@ -119,11 +122,11 @@ def log_analyze(file_nginx):
                     url_stat = url_vals[url_short]
                     url_stat.add_time(exc_time)
                     url_stat.freq_count()
-
-            assert len(url_vals) != 0, "Dict is empty"
-            if AssertionError:
-                raise
-            return url_vals
+            try:
+                assert len(url_vals) != 0, "Dict is empty"
+                return url_vals
+            except AssertionError:
+                raise WrongFileFormat
 
     if os.path.isdir(file_nginx):
         raise IsADirectoryError
@@ -156,7 +159,8 @@ def build_report(url_vals, num_rep, log_path_orig):
 
     shutil.copyfile('report.html', f'report{num_rep}.html')
 
-    with open(report_file := f"report{num_rep}.html", 'r') as rtf:
+    report_file = f"report{num_rep}.html"
+    with open(report_file, 'r') as rtf:
         report_text = rtf.read()
         report_text = report_text.replace("$table_json", table_json_text)
 
@@ -184,7 +188,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser('description= Log_analyzer')
 
     parser.add_argument('--folder', help="input path where logs reports will be stored", type=str,
-                        default='/home/driver220v/log_reports/')
+                        default='/home/log_analyzer/logs_save')
     parser.add_argument('--log', help="input gzip log file", type=str,
                         default='nginx-access-ui.log.gz')
     args = parser.parse_args()
