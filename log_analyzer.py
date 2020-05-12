@@ -194,7 +194,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     path_logs = []
-    log_number = 1
+    log_number = 2
     report_name = 'report.html'
     for i in range(log_number):
         path_logs.append(args.log)
