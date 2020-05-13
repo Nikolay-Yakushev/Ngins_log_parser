@@ -9,9 +9,6 @@ import shutil
 from time import time
 
 
-
-
-
 # Estimate time of program execution
 def time_dec(original_func):
     def wrapper(*args):
@@ -33,8 +30,10 @@ file_handler = logging.FileHandler('nginx_data.log')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
+
 class WrongFileFormat(BaseException):
     logger.debug('Failed due to inappropriate log format or content')
+
 
 # supplemental class to store functions and data
 class UrlStat:
@@ -194,7 +193,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     path_logs = []
-    log_number = 1
+    log_number = 2
     report_name = 'report.html'
     for i in range(log_number):
         path_logs.append(args.log)
